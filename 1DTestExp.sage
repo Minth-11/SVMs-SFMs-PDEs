@@ -28,7 +28,7 @@ for i in range(0,featureDim):
     tvrs.append(tv)
     for j in range(0,graad):
         lv = var("M_"+str(i)+"_"+str(j))
-        mh += lv * chebyshev_T(j,tv)
+        mh += lv * chebyshev_T(j,tv).horner(tv)
         vrs.append(lv)
     mm *= mh
 
