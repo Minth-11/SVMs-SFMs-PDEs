@@ -1,59 +1,47 @@
 # controlepaneel
 featureDim = 2
-graad = 6
+middenGraad = 5
+heenGraad = 3
+probleemVar = var('x')
 
-# stel heenmatrix op (H)
+# controledingetjes
+middenGraadTeller = middenGraad+1
+heenGraadTeller   = heenGraad+1
+
+# variabelen en beginpunt enz.
 vrs = []
-hevel = []
-for i in range(0,featureDim):
-    lv = var("H_"+str(i))
-    vrs.append(lv)
-    hevel.append(lv)
-H = matrix(hevel).transpose()
+bwds = []
 
-# stel heenbias op (h)
-hevel = []
+# stel heentransformatie op
+heen = []
+htvrs = []
 for i in range(0,featureDim):
-    lv = var("h_"+str(i))
-    vrs.append(lv)
-    hevel.append(lv)
-h = matrix(hevel).transpose()
+    hhevel = 0
+    for j in range(0,heenGraadTeller):
+        lv = var("H_"+str(i)+"_"+str(j))
+        vrs.append(lv)
+        if j == 1:
+            bwds.append(1)
+        else:
+            bwds.append(0)
+        hhevel += lv * chebyshev_T(j,probleemVar).horner(probleemVar)
+    heen = heen + [hhevel]
 
 # stel middenmodel op (M)
-tvrs = []
+mtvrs = []
 mm = 1
 for i in range(0,featureDim):
     mh = 0
-    tv = var("t_" + str(i))
-    tvrs.append(tv)
-    for j in range(0,graad):
+    tv = heen[i]
+    for j in range(0,middenGraadTeller):
         lv = var("M_"+str(i)+"_"+str(j))
-        mh += lv * chebyshev_T(j,tv).horner(tv)
+        mh += lv * chebyshev_T(j,tv)
         vrs.append(lv)
+        if j == 0:
+            bwds.append(1)
+        else:
+            bwds.append(0)
     mm *= mh
 
-    # Geen terugtransformatie - model zorgt hiervoor!
-# # stel terugmatrix op (T)
-# hevel = []
-# for i in range(0,featureDim):
-#     lv = var("T_"+str(i))
-#     vrs.append(lv)
-#     hevel.append(lv)
-# T = matrix(hevel)
-#
-# # stel hterugbias op (t)
-# hevel = []
-# for i in range(0,featureDim):
-#     lv = var("t_"+str(i))
-#     vrs.append(lv)
-#     hevel.append(lv)
-# t = matrix(hevel).transpose()
-
 # tests
-
-var('x')
-
-heen = H*matrix([x]) + h
-model = mm
-for i, t in enumerate(tvrs):
-    model = model.subs({t:heen[i][0]})
+print(mm)
