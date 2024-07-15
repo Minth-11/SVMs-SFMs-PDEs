@@ -89,7 +89,7 @@ Proposal: solving PDEs using SVMs by symbolically integrating
 Zander Op de Beeck
 \end_layout
 
-\begin_layout Section*
+\begin_layout Section
 Problem statement
 \end_layout
 
@@ -100,8 +100,8 @@ A PDE a (vector-)function written as
 \begin_layout Standard
 \begin_inset Formula 
 \begin{alignat*}{3}
-\mathcal{L}u & = & f & \ \text{on}\  & \Sigma\\
-\mathcal{B}u & = & g & \ \text{on}\  & \partial\Sigma
+\mathcal{L}u & = & f & \quad\text{on}\quad & \Sigma\\
+\mathcal{B}u & = & g & \quad\text{on}\quad & \partial\Sigma
 \end{alignat*}
 
 \end_inset
@@ -169,7 +169,7 @@ where
  is the boundary of the domain.
 \end_layout
 
-\begin_layout Section*
+\begin_layout Section
 Previous methods
 \end_layout
 
@@ -236,10 +236,326 @@ The boundary conditions are incorporated as hard constraints;
 \end_layout
 
 \begin_layout Standard
-\begin_inset Formula $\mathcal{Z}_{\mathcal{D}}\cup\mathcal{Z}_{\mathcal{B}}$
+The final objective then becomes
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{alignat*}{1}
+\underset{u}{\text{minimize}}\quad & \frac{1}{2}\sum_{i=1}^{|\mathcal{Z}_{\mathcal{D}}|}\left[\left(\mathcal{L}[u]-f\right)\left(z_{\mathcal{D}}^{i}\right)\right]^{2}\\
+\text{subject to\quad} & \forall j\in1\ldots|\mathcal{Z}_{\mathcal{B}}|:\ \mathcal{B}[u\left(z_{\mathcal{B}}^{i}\right)]=g\left(z_{\mathcal{B}}^{i}\right)\text{.}
+\end{alignat*}
+
 \end_inset
 
 
+\end_layout
+
+\begin_layout Section
+Proposed method
+\end_layout
+
+\begin_layout Subsection
+Problems to overcome
+\end_layout
+
+\begin_layout Standard
+One of the niceties PDEs has over data-based tasks is that, in principle,
+ the loss function can be calculated anywhere on the domain.
+ 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "LStPDEuLSSVM"
+literal "false"
+
+\end_inset
+
+ chooses to first pick its collocation points and then leave them where
+ they are, providing a rather efficient method and very tracktable.
+ This, however, also comes with a few disadvantages:
+\end_layout
+
+\begin_layout Enumerate
+The location (and number) of points may not be optimal.
+\end_layout
+
+\begin_layout Enumerate
+for high-dimensional problems, the number of points needed to adequately
+ sample the domain grows exponentially (curse of dimensionality).
+\end_layout
+
+\begin_layout Enumerate
+Points spaced too far apart may not pick up on fine detail, and may not
+ even account for it in the loss.
+\end_layout
+
+\begin_layout Subsection
+Proposed method
+\end_layout
+
+\begin_layout Subsubsection
+Loss and model
+\end_layout
+
+\begin_layout Standard
+On way of alleviating these problems somewhat may be to learn the location
+ of the collocation points themselves in addition to what 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "LStPDEuLSSVM"
+literal "false"
+
+\end_inset
+
+ does.
+ This would, however, come with a serious problem: the loss function 
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\underset{u,\mathcal{Z}_{\mathcal{D}}}{\text{minimize}}\quad\frac{1}{2}\sum_{i=1}^{|\mathcal{Z}_{\mathcal{D}}|}\left[\left(\mathcal{L}[u]-f\right)\left(z_{\mathcal{D}}^{i}\right)\right]^{2}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+calculates the error only at the collocation points themselves thus incentivizin
+g the model to choose collocation points at places where the error is low
+ anyways, which would result in a rather poor solution.
+\end_layout
+
+\begin_layout Standard
+A loss independent of the location of the point is thus required
+\begin_inset Foot
+status open
+
+\begin_layout Plain Layout
+Thus relieving the collocation points from their role in calculation the
+ erros, making them sample points.
+\end_layout
+
+\end_inset
+
+, which an explicit integration over the domain would accomplish:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\underset{u,\mathcal{Z}_{\mathcal{D}}}{\text{minimize}}\quad\frac{1}{2}\int_{\mathcal{D}}\left[\left(\mathcal{L}[u]-f\right)\left(z\right)\right]^{2}dz\text{.}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+This integral may not be intractable, for example, if the polynomial kernel
+ 
+\begin_inset Formula $K(x,y)=\left(x^{T}y+c\right)^{d}$
+\end_inset
+
+ is chosen, the resulting model is a polynomial as well, which can easily
+ be integrated symbolically, as can its derivatives and products with other
+ polynomials, and so on.
+ Assuming 
+\begin_inset Formula $\Sigma$
+\end_inset
+
+ is finite, any nonpolynomial function can be approximated on the domain
+ as a polynomial, and if a bound on the range of 
+\begin_inset Formula $u$
+\end_inset
+
+ is known, any nonpolynomial function that would take 
+\begin_inset Formula $u$
+\end_inset
+
+ as an argument could be polynomially approximated over this range as well.
+\end_layout
+
+\begin_layout Standard
+(I have also done some small-scale experiments with RBF kernels in a computer
+ algebra system, which worked as intended as well.)
+\end_layout
+
+\begin_layout Standard
+For other kernels, other approximations of functions in the domain could
+ be made.
+ Moreover, picking a 
+\begin_inset Quotes eld
+\end_inset
+
+working domain
+\begin_inset Quotes erd
+\end_inset
+
+ that contains 
+\begin_inset Formula $\Sigma$
+\end_inset
+
+ but has a more convenient shape would be possible.
+\end_layout
+
+\begin_layout Subsubsection
+Boundary conditions
+\end_layout
+
+\begin_layout Standard
+\begin_inset CommandInset citation
+LatexCommand cite
+key "LStPDEuLSSVM"
+literal "false"
+
+\end_inset
+
+ chose to incorporate the boundary conditions as hard constraints.
+ It would be impossible to symbolically integrate over (an approximation
+ of) the boundary and still treat it as a constraint in this way; for one,
+ the model has a finite number of parameters, which, in general, would not
+ suffice perfectly fitting 
+\begin_inset Formula $u$
+\end_inset
+
+ on the entire boundary.
+ The boundary, however, can be associated with a loss
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\left(\mathcal{B}[u\left(z\right)]-g\left(z\right)\right)^{2}\text{,}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+leaving four options:
+\end_layout
+
+\begin_layout Enumerate
+Pick a set of boundary points 
+\begin_inset Formula $\mathcal{Z}_{\mathcal{B}}$
+\end_inset
+
+ beforehand and impose 
+\begin_inset Formula $\forall j\in1\ldots|\mathcal{Z}_{\mathcal{B}}|:\ \mathcal{B}[u\left(z_{\mathcal{B}}^{i}\right)]=g\left(z_{\mathcal{B}}^{i}\right)$
+\end_inset
+
+ as a hard constraint, as was done in 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "LStPDEuLSSVM"
+literal "false"
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Enumerate
+Pick a set of boundary points 
+\begin_inset Formula $\mathcal{Z}_{\mathcal{B}}$
+\end_inset
+
+ beforehand and add their loss to the objective function.
+\end_layout
+
+\begin_layout Enumerate
+Symbolically integrate over (an approximation of) the boundary conditions
+ and add to the loss (perhaps using a weighting).
+\end_layout
+
+\begin_layout Enumerate
+A mixture of these.
+\end_layout
+
+\begin_layout Standard
+The third option would result in an optimization problem 
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{alignat*}{1}
+\underset{u,\mathcal{Z}}{\text{minimize}}\quad & \frac{1}{2}\int_{\mathcal{D}}\left[\left(\mathcal{L}[u]-f\right)\left(z\right)\right]^{2}dz\\
+ & +\ \gamma_{b}\int_{\partial\Sigma}\left[\left(\mathcal{B}[u]-g\right)\left(z\right)\right]^{2}dz\text{.}
+\end{alignat*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Where 
+\begin_inset Formula $\gamma_{b}$
+\end_inset
+
+ is a hyperparameter specifying the importance of fitting the boundary condition
+s.
+ The same remarks about the integration often being symbolically tractable
+ as in the section on the PDE itself apply here.
+\end_layout
+
+\begin_layout Standard
+Picking points for boundary conditions scales a bit better than picking
+ points in 
+\begin_inset Formula $\Sigma$
+\end_inset
+
+, after all, 
+\begin_inset Formula $\partial\Sigma$
+\end_inset
+
+ is of lower dimensionality.
+\end_layout
+
+\begin_layout Subsubsection
+Supposed advantages and limitations
+\end_layout
+
+\begin_layout Standard
+While symbolic integration over the domain does away with the curse of high-dime
+nsionality for calculating a loss, it does not in any give the model more
+ flexibility to fit a high-dimensional function.
+ This would have to be done by picking enough sample points and having a
+ flexible-enough model in the first place.
+ Having the pointsplace themselves as they wish might help in that.
+\end_layout
+
+\begin_layout Standard
+The glaring limitation of this approach is that the integrals need be symbolical
+ly doable, thouhg this can be alleviated somewhat by picking easily integrable
+ approximations to the original problem.
+\end_layout
+
+\begin_layout Subsection
+Extentions and considerations
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Itemize
+Optimization could be done ether all at once or alternately updating sample
+ points and SVM model
+\end_layout
+
+\begin_layout Itemize
+Fluid model, mesh B.C.
+\end_layout
+
+\begin_layout Itemize
+Finite differences vs symbolic differentiation
 \end_layout
 
 \begin_layout Standard
