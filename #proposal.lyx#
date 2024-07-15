@@ -414,16 +414,207 @@ literal "false"
 
 \end_inset
 
- chose to 
+ chose to incorporate the boundary conditions as hard constraints.
+ It would be impossible to symbolically integrate over (an approximation
+ of) the boundary and still treat it as a constraint in this way; for one,
+ the model has a finite number of parameters, which, in general, would not
+ suffice perfectly fitting 
+\begin_inset Formula $u$
+\end_inset
+
+ on the entire boundary.
+ The boundary, however, can be associated with a loss
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\left(\mathcal{B}[u\left(z\right)]-g\left(z\right)\right)^{2}\text{,}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+leaving four options:
+\end_layout
+
+\begin_layout Enumerate
+Pick a set of boundary points 
+\begin_inset Formula $\mathcal{Z}_{\mathcal{B}}$
+\end_inset
+
+ beforehand and impose 
+\begin_inset Formula $\forall j\in1\ldots|\mathcal{Z}_{\mathcal{B}}|:\ \mathcal{B}[u\left(z_{\mathcal{B}}^{i}\right)]=g\left(z_{\mathcal{B}}^{i}\right)$
+\end_inset
+
+ as a hard constraint, as was done in 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "LStPDEuLSSVM"
+literal "false"
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Enumerate
+Pick a set of boundary points 
+\begin_inset Formula $\mathcal{Z}_{\mathcal{B}}$
+\end_inset
+
+ beforehand and add their loss to the objective function.
+\end_layout
+
+\begin_layout Enumerate
+Symbolically integrate over (an approximation of) the boundary conditions
+ and add to the loss (perhaps using a weighting).
+\end_layout
+
+\begin_layout Enumerate
+A mixture of these.
+\end_layout
+
+\begin_layout Standard
+The third option would result in an optimization problem 
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{alignat*}{1}
+\underset{u,\mathcal{Z}}{\text{minimize}}\quad & \frac{1}{2}\int_{\mathcal{D}}\left[\left(\mathcal{L}[u]-f\right)\left(z\right)\right]^{2}dz\\
+ & +\ \gamma_{b}\int_{\partial\Sigma}\left[\left(\mathcal{B}[u]-g\right)\left(z\right)\right]^{2}dz\text{.}
+\end{alignat*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Where 
+\begin_inset Formula $\gamma_{b}$
+\end_inset
+
+ is a hyperparameter specifying the importance of fitting the boundary condition
+s.
+ The same remarks about the integration often being symbolically tractable
+ as in the section on the PDE itself apply here.
+\end_layout
+
+\begin_layout Standard
+Picking points for boundary conditions scales a bit better than picking
+ points in 
+\begin_inset Formula $\Sigma$
+\end_inset
+
+, after all, 
+\begin_inset Formula $\partial\Sigma$
+\end_inset
+
+ is of lower dimensionality.
+\end_layout
+
+\begin_layout Subsubsection
+Supposed advantages and limitations
+\end_layout
+
+\begin_layout Standard
+While symbolic integration over the domain does away with the curse of high-dime
+nsionality for calculating a loss, it does not in any give the model more
+ flexibility to fit a high-dimensional function.
+ This would have to be done by picking enough sample points and having a
+ flexible-enough model in the first place.
+ Having the pointsplace themselves as they wish might help in that.
+\end_layout
+
+\begin_layout Standard
+The glaring limitation of this approach is that the integrals need be symbolical
+ly doable, thouhg this can be alleviated somewhat by picking easily integrable
+ approximations to the original problem.
 \end_layout
 
 \begin_layout Subsection
 Extentions and considerations
 \end_layout
 
-\begin_layout Itemize
+\begin_layout Standard
+Some extensions and remarks:
+\end_layout
+
+\begin_layout Enumerate
 Optimization could be done ether all at once or alternately updating sample
- points and SVM model
+ points and SVM model.
+\end_layout
+
+\begin_layout Enumerate
+Instead of calculating (higher) derivatives in 
+\begin_inset Formula $\mathcal{L}$
+\end_inset
+
+ explicitly, one could use finite differences 
+\begin_inset Formula $\frac{u(z+\delta)-u(z)}{\delta}$
+\end_inset
+
+, resulting in a linear combination of 
+\begin_inset Formula $u$
+\end_inset
+
+ and 
+\begin_inset Formula $u$
+\end_inset
+
+ shifted by 
+\begin_inset Formula $\delta$
+\end_inset
+
+.
+ This may make integrals easier.
+\end_layout
+
+\begin_layout Enumerate
+Many structures are given as meshes in 3D; sets of triangles.
+ Especially for polynomial models, this seems easy to integrate over, providing
+ boundary conditions.
+\end_layout
+
+\begin_layout Enumerate
+(For low-dimensional problems), maybe monte-carlo intrgration could be used
+ to create a stochastic optimization method, keeping the sample points distinct
+ from the points used for approximation.
+\end_layout
+
+\begin_layout Enumerate
+The general idea of this scheme needs not apply only t okern
+\end_layout
+
+\begin_layout Enumerate
+Recently, in computer graphics, a method called 
+\begin_inset Quotes eld
+\end_inset
+
+gaussian splatting
+\begin_inset Quotes erd
+\end_inset
+
+ has been used to great succes for reconstructing 3D scenes from images
+ 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "gaussSplat"
+literal "false"
+
+\end_inset
+
+.
+ The model used here consists of 3D gaussians, not unlike (the dual representati
+on of) SVMs using the RBF kernel, except for the covariance matrix being
+ extra parameters (which could also be added in the SVM formulation).
+ Given its succes in approximating the real world, it may be a good model
+ for PDEs as well.
 \end_layout
 
 \begin_layout Standard

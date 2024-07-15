@@ -94,7 +94,7 @@ Problem statement
 \end_layout
 
 \begin_layout Standard
-A PDE a (vector-)function written as
+A PDE can be written as
 \end_layout
 
 \begin_layout Standard
@@ -118,7 +118,7 @@ where
 \begin_inset Formula $u$
 \end_inset
 
- is the function to be found,
+ is the (vector-)function to be found,
 \end_layout
 
 \begin_layout Labeling
@@ -142,7 +142,7 @@ where
 \begin_inset Formula $\Sigma$
 \end_inset
 
- is the domain on which the problem is to be solved
+ is the domain on which the problem is to be solved,
 \end_layout
 
 \begin_layout Labeling
@@ -150,7 +150,7 @@ where
 \begin_inset Formula $\mathcal{B}$
 \end_inset
 
- is the (differential) operator specifying the boundary conditions
+ is the (differential) operator specifying the boundary conditions,
 \end_layout
 
 \begin_layout Labeling
@@ -227,7 +227,7 @@ The boundary conditions are incorporated as hard constraints;
 \begin_inset Formula $u$
 \end_inset
 
- is assumed to be assumed to be of the form 
+ is assumed to be of the form 
 \begin_inset Formula $u(z)=w^{T}\varphi(z)+d$
 \end_inset
 
@@ -260,7 +260,7 @@ Problems to overcome
 \end_layout
 
 \begin_layout Standard
-One of the niceties PDEs has over data-based tasks is that, in principle,
+One of the niceties PDEs have over data-based tasks is that, in principle,
  the loss function can be calculated anywhere on the domain.
  
 \begin_inset CommandInset citation
@@ -271,12 +271,12 @@ literal "false"
 \end_inset
 
  chooses to first pick its collocation points and then leave them where
- they are, providing a rather efficient method and very tracktable.
+ they are, providing a rather efficient and very tractable method.
  This, however, also comes with a few disadvantages:
 \end_layout
 
 \begin_layout Enumerate
-The location (and number) of points may not be optimal.
+The location (and number) of collocation points may not be optimal.
 \end_layout
 
 \begin_layout Enumerate
@@ -323,8 +323,8 @@ literal "false"
 \end_layout
 
 \begin_layout Standard
-calculates the error only at the collocation points themselves thus incentivizin
-g the model to choose collocation points at places where the error is low
+calculates the error only at the collocation points themselves, thus incentivizi
+ng the model to choose collocation points at places where the error is low
  anyways, which would result in a rather poor solution.
 \end_layout
 
@@ -335,7 +335,7 @@ status open
 
 \begin_layout Plain Layout
 Thus relieving the collocation points from their role in calculation the
- erros, making them sample points.
+ errors, making them sample points.
 \end_layout
 
 \end_inset
@@ -418,7 +418,7 @@ literal "false"
  It would be impossible to symbolically integrate over (an approximation
  of) the boundary and still treat it as a constraint in this way; for one,
  the model has a finite number of parameters, which, in general, would not
- suffice perfectly fitting 
+ suffice for perfectly fitting 
 \begin_inset Formula $u$
 \end_inset
 
@@ -466,7 +466,8 @@ Pick a set of boundary points
 \begin_inset Formula $\mathcal{Z}_{\mathcal{B}}$
 \end_inset
 
- beforehand and add their loss to the objective function.
+ beforehand and add their loss to the objective function (perhaps using
+ a weighting).
 \end_layout
 
 \begin_layout Enumerate
@@ -523,39 +524,165 @@ Supposed advantages and limitations
 \end_layout
 
 \begin_layout Standard
-While symbolic integration over the domain does away with the curse of high-dime
-nsionality for calculating a loss, it does not in any give the model more
+While symbolic integration over the domain does away with the curse of dimension
+ality for calculating a loss, it does not in any way give the model more
  flexibility to fit a high-dimensional function.
  This would have to be done by picking enough sample points and having a
  flexible-enough model in the first place.
- Having the pointsplace themselves as they wish might help in that.
+ Having the points place themselves as they wish might help in that.
 \end_layout
 
 \begin_layout Standard
 The glaring limitation of this approach is that the integrals need be symbolical
-ly doable, thouhg this can be alleviated somewhat by picking easily integrable
+ly doable, though this can be alleviated somewhat by picking easily integrable
  approximations to the original problem.
 \end_layout
 
 \begin_layout Subsection
-Extentions and considerations
+Extensions and considerations
 \end_layout
 
 \begin_layout Standard
-
+Some extensions and remarks:
 \end_layout
 
-\begin_layout Itemize
+\begin_layout Enumerate
 Optimization could be done ether all at once or alternately updating sample
- points and SVM model
+ points and SVM model.
 \end_layout
 
-\begin_layout Itemize
-Fluid model, mesh B.C.
+\begin_layout Enumerate
+Instead of calculating (higher) derivatives in 
+\begin_inset Formula $\mathcal{L}$
+\end_inset
+
+ explicitly, one could use finite differences 
+\begin_inset Formula $\frac{u(z+\delta)-u(z)}{\delta}$
+\end_inset
+
+, resulting in a linear combination of 
+\begin_inset Formula $u$
+\end_inset
+
+ and 
+\begin_inset Formula $u$
+\end_inset
+
+ shifted by 
+\begin_inset Formula $\delta$
+\end_inset
+
+.
+ This may make integrals easier.
 \end_layout
 
-\begin_layout Itemize
-Finite differences vs symbolic differentiation
+\begin_layout Enumerate
+Many structures are given as meshes in 3D; sets of triangles.
+ Especially for polynomial models, this seems easy to integrate over, providing
+ boundary conditions.
+\end_layout
+
+\begin_layout Enumerate
+(For low-dimensional problems), maybe monte-carlo integration could be used
+ to create a stochastic optimization method, keeping the sample points distinct
+ from the points used for approximation.
+\end_layout
+
+\begin_layout Enumerate
+The general idea of this scheme needs not apply only to basic kernel-based
+ methods, other (tensor-based, deep) models could be used as well, provided
+ the integrations can be carried out.
+\end_layout
+
+\begin_layout Enumerate
+Recently, in computer graphics, a method called 
+\begin_inset Quotes eld
+\end_inset
+
+Gaussian splatting
+\begin_inset Quotes erd
+\end_inset
+
+ has been used to great success for reconstructing 3D scenes from images
+ 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "gaussSplat"
+literal "false"
+
+\end_inset
+
+.
+ The model used here consists of 3D Gaussians, not unlike (the dual representati
+on of) SVMs using the RBF kernel, except for the covariance matrix being
+ part of the learnable parameters (which could also be added in the SVM
+ formulation).
+ Given its success in approximating the real world, it may be a good model
+ for PDEs as well.
+\end_layout
+
+\begin_layout Enumerate
+The number of points taken has thusfar been assumed to be fixed.
+ A method for adding or removing points depending on how much they contribute
+ to the overall model could be implemented, as has been done successfully
+ in computer graphics 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "gaussSplat"
+literal "false"
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Enumerate
+Instead of support vectors, which are summed over in an SVM model, a 
+\begin_inset Quotes eld
+\end_inset
+
+support function
+\begin_inset Quotes erd
+\end_inset
+
+ could be used, (which may be a low-rank outer product of functions in each
+ variable).
+ The dual representation of the model would use an integral over and 
+\begin_inset Formula $\alpha$
+\end_inset
+
+ function instead of a discrete sum over 
+\begin_inset Formula $\alpha_{k}$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Enumerate
+Say one has a system of PDEs, i.e.
+ 
+\begin_inset Formula $u$
+\end_inset
+
+ is a vector function.
+ Would is be best to have different sets of points 
+\begin_inset Formula $\mathcal{Z}$
+\end_inset
+
+ for each component of 
+\begin_inset Formula $u$
+\end_inset
+
+ or might one have only a single set 
+\begin_inset Formula $\mathcal{Z}$
+\end_inset
+
+ together with weights on how much each part of the model contributes to
+ each component of 
+\begin_inset Formula $u$
+\end_inset
+
+?
 \end_layout
 
 \begin_layout Standard
