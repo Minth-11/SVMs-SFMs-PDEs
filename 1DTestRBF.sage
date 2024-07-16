@@ -3,24 +3,22 @@ from sage.numerical.optimize import minimize
 from scipy.optimize import line_search
 
 # opstellen model
-supports = 4
-d = 5
+supports = 64
 bwds = []
 vrs = []
 mm = 0
 for i in range(0,supports):
     wgt = var("alpha_"+str(i))
     vrs.append(wgt)
-    # bwds.append((-1)^round(random()) * random())
-    bwds.append(0)
+    bwds.append((-1)^round(random()) * random())
+    # bwds.append( 0 )
     vrt = var("x_"+str(i))
     vrs.append(vrt)
     bwds.append((-1)^round(random()) * random())
-    cl = var("c_"+str(i))
-    vrs.append(cl)
-    # bwds.append( (-1)^round(random()) * random() )
-    bwds.append( 0 )
-    mm += wgt * (vrt*x  + cl)^d
+    sig = var("sigma_"+str(i))
+    vrs.append(sig)
+    bwds.append( random() * 10 )
+    mm += wgt * exp( -1 * (x - vrt)^2 / (2*sig*sig))
 
 model = mm
 # print()
@@ -36,7 +34,7 @@ probleem = [
                 diff(f(x),x) == (f(x) * (1 - f(x)))*4*(3/2),
                 f.subs({x:0}) == 1/2
             ]
-bereik = (x,-1,1)
+bereik = (x,-2,2)
 
 # controledingetjes
 
@@ -44,27 +42,28 @@ bereik = (x,-1,1)
 loss = 0
 for i in probleem:
     loss += (i.lhs() - i.rhs())^2
-   
+    
 # print("loss:")
 # print(loss)
-
+tlr = 0
 def evalLoss(pt):
-    dt = dict(zip(vrs,pt))
-    lni = loss.subs(dt)
+    lni = loss.subs(dict(zip(vrs,pt)))
+    # print(lni)
     # uit = integral(lni,bereik)
-    # print(uit)
     # uit = monte_carlo_integral(lambda v: lni.subs({x:v}),[-1,1],10000)
-    uit = monte_carlo_integral(lni,[-1],[1],1000,algorithm='vegas')
-    print(uit,end='\r')
+    uit = monte_carlo_integral(lni,[bereik[1]],[bereik[2]],10000,algorithm='vegas')
+    global tlr
+    tlr += 1
+    print(str(tlr)+" "+str(uit),end='\r')
     return uit[0]
 
-modelParameters = minimize(evalLoss,bwds,verbose=True,maxiter=2000)
+modelParameters = minimize(evalLoss,bwds,verbose=True,maxiter=10^6)
 
 print()
 
 fnl = model.subs(dict(zip(vrs,modelParameters)))
 
-plot(fnl,(x,-1,1))
+plot(fnl,(x,-2,2))
 
 # def maakOplFn(mdl,vrs,pt):
     # sbs = dict(zip(vrs,pt))
